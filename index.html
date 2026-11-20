@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>性癖カードバトル</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Yuji+Syuku&display=swap">
+<style>
+/* 公式大会の中継卓：紺の卓上に和紙のカード、朱の判子、金の罫。単一テーマ（意図的にダーク固定） */
+:root {
+  color-scheme: dark;
+  --bg: #0e1729;
+  --panel: #15213a;
+  --panel-2: #1c2b4a;
+  --line: #2c3d63;
+  --fg: #e9edf5;
+  --muted: #9aa6bf;
+  --paper: #f1e9d8;
+  --paper-edge: #d9ccb0;
+  --ink: #1d1b18;
+  --gold: #d1ab55;
+  --gold-soft: #d1ab5533;
+  --shu: #c9362b;
+  --shu-soft: #c9362b22;
+  --steel: #6e7686;
+  --font-display: "Shippori Mincho B1", "Yu Mincho", "Hiragino Mincho ProN", serif;
+  --font-body: "Zen Kaku Gothic New", "Yu Gothic", "Hiragino Sans", "Meiryo", sans-serif;
+  --font-brush: "Yuji Syuku", "Shippori Mincho B1", "Yu Mincho", serif;
+  --radius: 10px;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.app {
+  max-width: 1560px;
+  margin: 0 auto;
+  min-height: 100%;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+button { font: inherit; cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* ---- header ---- */
+.bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--line); padding-bottom: 14px;
+}
+.brand { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; letter-spacing: .08em; }
+.brand small { font-family: var(--font-body); font-weight: 500; color: var(--muted); font-size: .8rem; letter-spacing: .12em; }
+.bar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---- buttons ---- */
+.btn {
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--fg);
+  padding: 10px 18px; border-radius: 8px; font-weight: 700; letter-spacing: .04em;
+  transition: background .15s, border-color .15s, transform .1s;
+}
+.btn:hover:not(:disabled) { border-color: var(--gold); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: .38; }
+.btn-primary { background: var(--gold); color: #1a1406; border-color: var(--gold); }
+.btn-primary:hover:not(:disabled) { background: #e0bd6a; }
+.btn-shu { background: var(--shu); border-color: var(--shu); color: #fff; }
+.btn-shu:hover:not(:disabled) { background: #dc4639; border-color: #dc4639; }
+.btn-ghost { background: transparent; }
+.btn-lg { padding: 16px 34px; font-size: 1.2rem; }
+
+/* ---- seal ---- */
+.seal {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border: 2px solid var(--shu); color: var(--shu);
+  border-radius: 6px; font-family: var(--font-brush); font-size: .62rem; line-height: 1.05;
+  writing-mode: vertical-rl; letter-spacing: -.02em; transform: rotate(-4deg); flex: none;
+}
+.seal.big { width: 120px; height: 120px; font-size: 1.55rem; border-width: 4px; border-radius: 14px; padding: 6px; }
+
+/* ---- title ---- */
+.title-screen { flex: 1; display: grid; place-items: center; text-align: center; padding-block: 6vh; }
+.title-stack { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.eyebrow { color: var(--gold); letter-spacing: .3em; font-size: .9rem; font-weight: 700; }
+.title-main {
+  font-family: var(--font-display); font-weight: 800; margin: 0;
+  font-size: clamp(2.6rem, 8vw, 6.2rem); letter-spacing: .06em; line-height: 1.15; text-wrap: balance;
+}
+.title-sub { color: var(--muted); max-width: 36em; margin: 0; }
+.title-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.rev { color: var(--muted); font-size: .85rem; letter-spacing: .08em; }
+
+/* ---- generic section ---- */
+.screen-head { display: flex; flex-direction: column; gap: 6px; }
+.screen-head h2 { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem, 3vw, 2.3rem); margin: 0; letter-spacing: .05em; text-wrap: balance; }
+.screen-head p { margin: 0; color: var(--muted); }
+.notice {
+  border: 1px solid var(--gold); background: var(--gold-soft); color: var(--fg);
+  border-radius: 8px; padding: 10px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
+.error { border-color: var(--shu); background: var(--shu-soft); }
+
+/* ---- rules ---- */
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 18px; }
+.rule-block { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; min-width: 0; }
+.rule-block h3 { font-family: var(--font-display); margin: 0 0 10px; color: var(--gold); letter-spacing: .1em; font-size: 1.15rem; }
+.rule-block ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.rule-block dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; }
+.rule-block dt { color: var(--muted); }
+.rule-block dd { margin: 0; }
+
+/* ---- input ---- */
+.input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 20px; }
+.player-form { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 12px; min-width: 0; }
+.player-form h3 { margin: 0; font-family: var(--font-display); letter-spacing: .08em; }
+.field { display: grid; grid-template-columns: 3.2em 1fr; align-items: center; gap: 10px; }
+.field label { font-weight: 700; text-align: center; border-radius: 6px; padding: 4px 0; font-size: .9rem; }
+.tag-true { background: #2c3d63; color: var(--fg); }
+.tag-false { background: var(--shu-soft); color: #ff8a80; border: 1px solid var(--shu); }
+.tag-name { color: var(--muted); }
+.field input {
+  width: 100%; min-width: 0; background: var(--bg); color: var(--fg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 10px 12px; font: inherit; transition: filter .15s;
+}
+.field input:focus { border-color: var(--gold); outline: none; }
+.hide-on .field input.secret:not(:focus) { filter: blur(7px); }
+.form-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+
+/* ---- draw ---- */
+.draw { display: flex; flex-direction: column; align-items: center; gap: 28px; padding-block: 5vh; text-align: center; }
+.plates { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+.plate {
+  min-width: min(300px, 80vw); padding: 28px 24px; border-radius: var(--radius); border: 2px solid var(--line);
+  background: var(--panel); font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem, 4vw, 2.6rem);
+  transition: border-color .08s, background .08s, transform .08s;
+}
+.plate.lit { border-color: var(--gold); background: var(--panel-2); transform: scale(1.04); }
+.plate .plate-role { display: block; font-family: var(--font-body); font-size: .95rem; color: var(--gold); letter-spacing: .2em; min-height: 1.5em; }
+
+/* ---- scoreboard ---- */
+.scoreboard {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+}
+.sb-side { padding: 14px 22px; display: flex; align-items: center; gap: 16px; min-width: 0; }
+.sb-side.right { justify-content: flex-end; text-align: right; }
+.sb-name { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.1rem, 2.2vw, 1.6rem); overflow-wrap: anywhere; min-width: 0; }
+.sb-role { display: block; font-family: var(--font-body); font-size: .78rem; letter-spacing: .14em; color: var(--muted); font-weight: 500; }
+.sb-side.active .sb-role { color: var(--gold); }
+.sb-score { font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.sb-mid { background: var(--panel-2); display: grid; place-items: center; padding: 8px 18px; text-align: center; border-inline: 1px solid var(--line); }
+.sb-mid b { display: block; font-family: var(--font-display); color: var(--gold); letter-spacing: .12em; }
+.sb-mid span { font-size: .8rem; color: var(--muted); }
+
+.status { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: .95rem; background: var(--panel); }
+.chip.gold { border-color: var(--gold); color: var(--gold); }
+.chip.off { color: var(--muted); }
+.guide { color: var(--muted); margin: 0; }
+.guide strong { color: var(--fg); }
+
+/* ---- cards ---- */
+.cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.card { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card-face {
+  position: relative; aspect-ratio: 5 / 7; max-width: 100%;
+  background: var(--paper); color: var(--ink); border-radius: var(--radius);
+  border: 1px solid var(--paper-edge); box-shadow: 0 6px 18px #0006;
+  padding: 16px 14px; display: flex; flex-direction: column; overflow: hidden;
+}
+.card-no { font-family: var(--font-display); font-weight: 800; font-size: .85rem; color: #7b6a48; letter-spacing: .14em; display: flex; justify-content: space-between; align-items: center; }
+.card-text {
+  flex: 1; display: grid; place-items: center; text-align: center;
+  font-family: var(--font-display); font-weight: 800; font-size: clamp(1.05rem, 1.7vw, 1.6rem);
+  line-height: 1.4; overflow-wrap: anywhere; text-wrap: balance; min-height: 0; overflow: auto;
+}
+.card.deep .card-face { box-shadow: 0 0 0 3px var(--gold), 0 6px 18px #0006; }
+.ribbon { background: var(--gold); color: #1a1406; font-family: var(--font-body); font-weight: 700; font-size: .72rem; padding: 2px 8px; border-radius: 4px; letter-spacing: .08em; }
+.card.revealed.true .card-face { background: #e4ddcf; }
+.card-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.card-btns .btn { padding: 9px 6px; font-size: .95rem; }
+.card-result { text-align: center; font-weight: 700; min-height: 1.6em; font-size: .95rem; }
+.card-result.hit { color: #ff8a80; }
+.card-result.miss { color: var(--muted); }
+.card-result.lie { color: #ff8a80; opacity: .85; }
+
+/* めくったカードは本文を上に寄せ、右下の余白に判子を押す */
+.card.revealed .card-text { padding-bottom: 46%; }
+.stamp {
+  position: absolute; right: 9%; bottom: 7%;
+  width: 46%; aspect-ratio: 1; display: grid; place-items: center;
+  border: 4px solid currentColor; border-radius: 50%;
+  font-family: var(--font-brush); line-height: 1; pointer-events: none;
+  transform: rotate(-14deg); mix-blend-mode: multiply;
+}
+.stamp.hit { color: var(--shu); font-size: clamp(1.1rem, 1.9vw, 1.9rem); border-radius: 12%; letter-spacing: .04em; }
+.stamp.miss { color: var(--steel); font-size: clamp(1.6rem, 2.8vw, 2.8rem); }
+.stamp.lie { color: var(--shu); font-size: clamp(1.3rem, 2.2vw, 2.2rem); width: 36%; opacity: .6; border-style: dashed; }
+.stamp.truth { color: var(--steel); font-size: clamp(1.2rem, 2vw, 2rem); width: 34%; opacity: .5; }
+.stamp.anim { animation: stampIn .32s cubic-bezier(.2, 1.6, .4, 1) both; }
+@keyframes stampIn {
+  from { opacity: 0; transform: rotate(-24deg) scale(2.2); }
+  to { opacity: 1; transform: rotate(-14deg) scale(1); }
+}
+.turn-foot { display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; align-items: center; }
+.turn-foot p { margin: 0 auto 0 0; font-weight: 700; }
+
+/* ---- vote ---- */
+.vote-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 20px; }
+.vote-box { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; min-width: 0; }
+.vote-box h3 { margin: 0; font-family: var(--font-display); font-size: 1.6rem; overflow-wrap: anywhere; }
+.vote-count { font-size: clamp(3.5rem, 8vw, 5.5rem); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.vote-count small { font-size: 1.2rem; color: var(--muted); margin-left: 4px; }
+.vote-ctrl { display: flex; gap: 10px; }
+.vote-ctrl .btn { width: 64px; height: 56px; font-size: 1.6rem; padding: 0; }
+.center-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+/* ---- result ---- */
+.result-hero { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; padding-block: 3vh 1vh; }
+.result-hero .eyebrow { font-size: 1rem; }
+.winner { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 8vw, 5.8rem); margin: 0; line-height: 1.15; overflow-wrap: anywhere; }
+.win-stamp {
+  color: var(--shu); border: 6px solid var(--shu); border-radius: 14px; font-family: var(--font-brush);
+  font-size: clamp(1.8rem, 4vw, 2.8rem); padding: 6px 22px; transform: rotate(-8deg);
+}
+.win-stamp.anim { animation: winIn .45s cubic-bezier(.2, 1.6, .4, 1) .15s both; }
+@keyframes winIn { from { opacity: 0; transform: rotate(-20deg) scale(2.4); } to { opacity: 1; transform: rotate(-8deg) scale(1); } }
+.final { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.recap { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 20px; }
+.recap-col { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; min-width: 0; }
+.recap-col h3 { margin: 0 0 4px; font-family: var(--font-display); overflow-wrap: anywhere; }
+.recap-col .guide { margin-bottom: 10px; font-size: .9rem; }
+.recap-col ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.recap-col li { display: grid; grid-template-columns: 2.4em 1fr auto; gap: 10px; align-items: center; border-top: 1px solid var(--line); padding-top: 8px; }
+.recap-col li span:nth-child(2) { overflow-wrap: anywhere; min-width: 0; }
+.tf { font-family: var(--font-brush); font-size: 1.2rem; text-align: center; border-radius: 6px; padding: 0 4px; }
+.tf.t { color: var(--muted); border: 1px solid var(--line); }
+.tf.f { color: #ff8a80; border: 1px solid var(--shu); }
+.found { font-size: .8rem; color: var(--gold); white-space: nowrap; }
+
+/* ---- responsive ---- */
+@media (max-width: 1100px) { .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 680px) {
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .scoreboard { grid-template-columns: 1fr 1fr; }
+  .sb-mid { grid-column: 1 / -1; grid-row: 1; border-inline: 0; border-bottom: 1px solid var(--line); }
+  .sb-side { padding: 12px 14px; }
+  .card-face { aspect-ratio: 4 / 5; }
+  .btn-lg { padding: 14px 22px; font-size: 1.05rem; }
+  .brand small { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const DOUBT_LIMIT = 2;
+  const TRUTH_COUNT = 3;
+  const LIE_COUNT = 2;
+  const DRAW_MS = 1700;
+  const KANJI_NO = "一二三四五";
+
+  const SAMPLE = [
+    { name: "紳士A", truths: ["メガネを外す瞬間", "低めの落ち着いた声", "手の甲の血管"], lies: ["雨の日の図書館", "照れ隠しの敬語"] },
+    { name: "紳士B", truths: ["袖をまくる仕草", "寝起きのかすれ声", "万年筆で書いた字"], lies: ["左利き", "うなじ"] },
+  ];
+
+  const app = document.getElementById("app");
+
+  const blankPlayer = (name = "") => ({ name, truths: Array(TRUTH_COUNT).fill(""), lies: Array(LIE_COUNT).fill("") });
+  const newTurn = () => ({ deep: null, doubts: [], done: false });
+
+  function initialState(names = ["", ""]) {
+    return {
+      screen: "title",
+      players: [blankPlayer(names[0]), blankPlayer(names[1])],
+      hide: true,
+      error: "",
+      confirmHome: false,
+      order: [0, 1],
+      drawn: false,
+      turn: 0,
+      decks: [[], []],
+      turns: [newTurn(), newTurn()],
+      scores: [0, 0],
+      votes: [0, 0],
+      voteRound: 1,
+      voted: false,
+    };
+  }
+
+  let state = initialState();
+  let history = [];
+  let animateCard = null;   // card index whose stamp animates on the next render
+  let drawTimer = null;
+
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const nameOf = (i) => state.players[i].name.trim() || `プレイヤー${i + 1}`;
+  const clone = (v) => JSON.parse(JSON.stringify(v));
+
+  function shuffle(list) {
+    const out = list.slice();
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+
+  function setState(patch) {
+    state = { ...state, ...patch };
+    render();
+  }
+
+  const presenter = () => state.order[state.turn];
+  const challenger = () => state.order[1 - state.turn];
+  const currentTurn = () => state.turns[presenter()];
+
+  // ---------- views ----------
+  function header(extra = "") {
+    return `<header class="bar">
+      <div class="brand"><span class="seal" aria-hidden="true">運営委員会</span><span>性癖カードバトル <small>公式進行補助システム</small></span></div>
+      <div class="bar-actions">${extra}</div>
+    </header>`;
+  }
+
+  function viewTitle() {
+    return `<section class="title-screen">
+      <div class="title-stack">
+        <span class="seal big" aria-hidden="true">運営委員会之印</span>
+        <span class="eyebrow">紳士と紳士の熱きスポーツ</span>
+        <h1 class="title-main">性癖カードバトル</h1>
+        <p class="title-sub">真の性癖3つと偽りの性癖2つ。相手の説明を拝聴し、偽りを見破れ。</p>
+        <div class="title-actions">
+          <button class="btn btn-primary btn-lg" data-action="start">ゲーム開始</button>
+          <button class="btn btn-lg btn-ghost" data-action="rules">ルールを読む</button>
+        </div>
+        <span class="rev">ルールブック 令和8年5月12日改定版に準拠</span>
+      </div>
+    </section>`;
+  }
+
+  function viewRules() {
+    return `${header(`<button class="btn" data-action="home">タイトルへ戻る</button>`)}
+    <div class="screen-head"><h2>ルールブック</h2><p>安心かつ公平なゲーム進行のために、始める前に全員で確認してください。</p></div>
+    <div class="rules">
+      <div class="rule-block"><h3>ゲームの概要</h3><ul>
+        <li>討論者は己の真の性癖を3つ、偽りの性癖を2つ提示する。</li>
+        <li>相手の性癖に対する説明を拝聴し、偽りの性癖を見破る。</li>
+        <li>観戦者はミュートを徹底し、司会と討論者のみが発言可とする。</li>
+        <li>相手の性癖を指摘する前に、5つのうち1つを「深掘り」できる。</li>
+        <li>同点の場合は観戦者による異常性癖投票を行い、得票数の多い者を勝者とする。</li>
+        <li>罰ゲームは優勝者が決定し、絶対遵守される。</li>
+        <li>公平性のため司会者を設ける。通話に入室している者全員が参加者となり、参加義務を負う。</li>
+      </ul></div>
+      <div class="rule-block"><h3>このツールでの進め方</h3><ul>
+        <li>司会者が画面共有を止めて、両者のカードを入力する。</li>
+        <li>先攻はツールが抽選する。説明は片方ずつ行い、終わったら攻守交代。</li>
+        <li>ダウトは各自2回まで。偽りを当てたら1点。</li>
+        <li>深掘りは1回目のダウトの前に1回だけ使える。</li>
+        <li>ダウトのたびにカードをめくり、2回目のあとに残りもすべて公開する。</li>
+        <li>投票でも同数なら再投票。押し間違えは「1手戻す」で取り消せる。</li>
+      </ul></div>
+      <div class="rule-block"><h3>プレイ人数</h3><dl>
+        <dt>討論者</dt><dd>2名</dd><dt>司会者</dt><dd>1名</dd><dt>観戦者</dt><dd>奇数名（推奨）</dd>
+      </dl></div>
+      <div class="rule-block"><h3>注意事項</h3><ul>
+        <li>信頼できる仲間とやりましょう。</li>
+        <li>性的マイノリティや実在人物をネタにしないこと。</li>
+        <li>相手が異常性癖の持ち主でも否定をしないこと。</li>
+        <li>相手の性癖をカードバトル以外の場で持ち出さないこと。</li>
+        <li>違反が見られる場合、罰則が課される場合があります。</li>
+      </ul></div>
+      <div class="rule-block"><h3>罰則</h3><dl>
+        <dt>性癖開示ペナルティ</dt><dd>自分の「今後一切ネタにする予定のない性癖」を1つ発表する。</dd>
+        <dt>視聴義務</dt><dd>己の性癖の範囲外の映像媒体を視聴する。</dd>
+      </dl></div>
+    </div>`;
+  }
+
+  function inputField(i, kind, k, value) {
+    const isTrue = kind === "truths";
+    const id = `p${i}${isTrue ? "t" : "l"}${k}`;
+    return `<div class="field"><label class="${isTrue ? "tag-true" : "tag-false"}" for="${id}">${isTrue ? "真" : "偽"}${k + 1}</label>
+      <input class="secret" id="${id}" data-p="${i}" data-kind="${kind}" data-k="${k}" value="${esc(value)}" autocomplete="off" maxlength="40"></div>`;
+  }
+
+  function playerForm(i) {
+    const p = state.players[i];
+    return `<div class="player-form">
+      <h3>プレイヤー${i + 1}</h3>
+      <div class="field"><label class="tag-name" for="p${i}name">名前</label>
+        <input id="p${i}name" data-p="${i}" data-kind="name" value="${esc(p.name)}" placeholder="プレイヤー${i + 1}" autocomplete="off" maxlength="16"></div>
+      ${p.truths.map((v, k) => inputField(i, "truths", k, v)).join("")}
+      ${p.lies.map((v, k) => inputField(i, "lies", k, v)).join("")}
+    </div>`;
+  }
+
+  function viewInput() {
+    return `${header(`<button class="btn" data-action="home">タイトルへ戻る</button>`)}
+    <div class="screen-head"><h2>カード入力</h2><p>司会者が討論者2名からDMで受け取った性癖を入力します。表示はバトル開始時にシャッフルされます。</p></div>
+    <div class="notice"><strong>入力中は画面共有を止めてください。</strong>
+      <span>伏せ字にしていても、入力中の欄だけは文字が見えます。</span></div>
+    ${state.error ? `<div class="notice error" role="alert">${esc(state.error)}</div>` : ""}
+    <div class="input-grid ${state.hide ? "hide-on" : ""}">${playerForm(0)}${playerForm(1)}</div>
+    <div class="form-actions">
+      <div class="chips">
+        <button class="btn" data-action="toggleHide" aria-pressed="${state.hide}">${state.hide ? "伏せ字：オン" : "伏せ字：オフ"}</button>
+        <button class="btn btn-ghost" data-action="sample">サンプルを入れる</button>
+      </div>
+      <button class="btn btn-primary btn-lg" data-action="confirm">確定して先攻を決める</button>
+    </div>`;
+  }
+
+  function viewDraw() {
+    const plates = [0, 1].map((i) => {
+      const role = state.drawn ? (state.order[0] === i ? "先攻" : "後攻") : "";
+      const lit = state.drawn && state.order[0] === i;
+      return `<div class="plate ${lit ? "lit" : ""}" id="plate${i}"><span class="plate-role">${role}</span>${esc(nameOf(i))}</div>`;
+    }).join("");
+    const head = state.drawn
+      ? `<h2>先攻が決まりました</h2><p>${esc(nameOf(state.order[0]))}が先に5枚を説明し、${esc(nameOf(state.order[1]))}が見破ります。</p>`
+      : `<h2>先攻を抽選中…</h2><p>公平な抽選を行っています。</p>`;
+    return `${header()}
+    <section class="draw">
+      <div class="screen-head">${head}</div>
+      <div class="plates">${plates}</div>
+      ${state.drawn ? `<button class="btn btn-primary btn-lg" data-action="beginBattle">バトル開始</button>` : ""}
+    </section>`;
+  }
+
+  function scoreboard() {
+    const side = (i, align) => {
+      const role = i === presenter() ? "説明中" : "見破る側";
+      const active = i === challenger() ? "active" : "";
+      const name = `<span class="sb-name"><span class="sb-role">${role}</span>${esc(nameOf(i))}</span>`;
+      const score = `<span class="sb-score" aria-label="${esc(nameOf(i))}の得点">${state.scores[i]}</span>`;
+      return `<div class="sb-side ${align} ${active}">${align === "right" ? score + name : name + score}</div>`;
+    };
+    return `<div class="scoreboard">
+      ${side(0, "left")}
+      <div class="sb-mid"><b>${state.turn === 0 ? "先攻ターン" : "後攻ターン"}</b><span>第${state.turn + 1}ターン / 全2ターン</span></div>
+      ${side(1, "right")}
+    </div>`;
+  }
+
+  function cardStamp(card, doubted, revealed, anim) {
+    if (doubted && !card.isTrue) return { stamp: `<span class="stamp hit ${anim}">看破</span>`, result: `<span class="card-result hit">当たり！ 偽りの性癖</span>` };
+    if (doubted) return { stamp: `<span class="stamp miss ${anim}">真</span>`, result: `<span class="card-result miss">ハズレ… 真の性癖</span>` };
+    if (revealed && !card.isTrue) return { stamp: `<span class="stamp lie">偽</span>`, result: `<span class="card-result lie">見逃した偽り</span>` };
+    if (revealed) return { stamp: `<span class="stamp truth">真</span>`, result: `<span class="card-result miss">真の性癖</span>` };
+    return { stamp: "", result: `<span class="card-result"></span>` };
+  }
+
+  function cardView(card, idx, turn) {
+    const doubted = turn.doubts.includes(idx);
+    const revealed = doubted || turn.done;
+    const isDeep = turn.deep === idx;
+    const canDeep = turn.deep === null && turn.doubts.length === 0;
+    const canDoubt = !turn.done && !doubted;
+    const { stamp, result } = cardStamp(card, doubted, revealed, animateCard === idx ? "anim" : "");
+    const cls = ["card", isDeep ? "deep" : "", revealed ? `revealed ${card.isTrue ? "true" : "false"}` : ""].join(" ");
+    return `<article class="${cls}">
+      <div class="card-face">
+        <div class="card-no"><span>其の${KANJI_NO[idx]}</span>${isDeep ? `<span class="ribbon">深掘り</span>` : ""}</div>
+        <div class="card-text">${esc(card.text)}</div>
+        ${stamp}
+      </div>
+      ${result}
+      <div class="card-btns">
+        <button class="btn" data-action="deep" data-i="${idx}" ${canDeep ? "" : "disabled"}>深掘り</button>
+        <button class="btn btn-shu" data-action="doubt" data-i="${idx}" ${canDoubt ? "" : "disabled"}>ダウト</button>
+      </div>
+    </article>`;
+  }
+
+  function battleGuide(turn, hits, left) {
+    const p = esc(nameOf(presenter()));
+    const c = esc(nameOf(challenger()));
+    if (turn.done) return `ターン終了。<strong>${c}</strong>は偽り2つのうち<strong>${hits}つ</strong>を見破りました。`;
+    if (turn.doubts.length === 0) return `<strong>${p}</strong>が5枚を説明します。<strong>${c}</strong>は深掘りを1回使ってから、偽りだと思うカードにダウトしてください。`;
+    return `<strong>${c}</strong>のダウトはあと${left}回です。`;
+  }
+
+  function viewBattle() {
+    const turn = currentTurn();
+    const deck = state.decks[presenter()];
+    const left = DOUBT_LIMIT - turn.doubts.length;
+    const hits = turn.doubts.filter((i) => !deck[i].isTrue).length;
+
+    let deepChip = `<span class="chip gold">深掘り：使用可（1回）</span>`;
+    if (turn.deep !== null) deepChip = `<span class="chip off">深掘り：其の${KANJI_NO[turn.deep]}で使用済み</span>`;
+    else if (turn.doubts.length > 0) deepChip = `<span class="chip off">深掘り：使わずにダウト済み</span>`;
+
+    const nextLabel = state.turn === 0 ? "攻守交代して後攻ターンへ" : "最終結果へ";
+    const undoBtn = `<button class="btn" data-action="undo" ${history.length ? "" : "disabled"}>1手戻す</button>`;
+    const foot = turn.done
+      ? `<div class="turn-foot"><p>${esc(nameOf(challenger()))} に +${hits} 点</p><button class="btn btn-primary btn-lg" data-action="nextTurn">${nextLabel}</button></div>`
+      : "";
+
+    return `${header(undoBtn + `<button class="btn btn-ghost" data-action="askHome">中断</button>`)}
+    ${state.confirmHome ? confirmHomeBox() : ""}
+    ${scoreboard()}
+    <div class="status">
+      <p class="guide">${battleGuide(turn, hits, left)}</p>
+      <div class="chips"><span class="chip ${left ? "gold" : "off"}">ダウト残り ${left} 回</span>${deepChip}</div>
+    </div>
+    <div class="cards">${deck.map((card, i) => cardView(card, i, turn)).join("")}</div>
+    ${foot}`;
+  }
+
+  function confirmHomeBox() {
+    return `<div class="notice error" role="alert"><strong>ゲームを中断してタイトルに戻りますか？</strong><span>入力したカードと得点は消えます。</span>
+      <button class="btn btn-shu" data-action="home">中断する</button><button class="btn" data-action="cancelHome">続ける</button></div>`;
+  }
+
+  function scoreboardFinal() {
+    return `<div class="scoreboard">
+      <div class="sb-side left"><span class="sb-name"><span class="sb-role">プレイヤー1</span>${esc(nameOf(0))}</span><span class="sb-score">${state.scores[0]}</span></div>
+      <div class="sb-mid"><b>最終得点</b><span>見破った偽りの数</span></div>
+      <div class="sb-side right"><span class="sb-score">${state.scores[1]}</span><span class="sb-name"><span class="sb-role">プレイヤー2</span>${esc(nameOf(1))}</span></div>
+    </div>`;
+  }
+
+  function viewVote() {
+    const box = (i) => `<div class="vote-box">
+      <h3>${esc(nameOf(i))}</h3>
+      <div class="vote-count" aria-live="polite">${state.votes[i]}<small>票</small></div>
+      <div class="vote-ctrl">
+        <button class="btn" data-action="vote" data-i="${i}" data-d="-1" aria-label="${esc(nameOf(i))}の票を1減らす" ${state.votes[i] ? "" : "disabled"}>−</button>
+        <button class="btn btn-primary" data-action="vote" data-i="${i}" data-d="1" aria-label="${esc(nameOf(i))}の票を1増やす">＋</button>
+      </div>
+    </div>`;
+    return `${header()}
+    ${scoreboardFinal()}
+    <div class="screen-head"><h2>異常性癖投票${state.voteRound > 1 ? `（${state.voteRound}回目）` : ""}</h2>
+      <p>得点は ${state.scores[0]} 対 ${state.scores[1]} で同点です。観戦者は、より異常だと思う討論者に投票してください。司会者が票数を入力します。</p></div>
+    ${state.error ? `<div class="notice error" role="alert">${esc(state.error)}</div>` : ""}
+    <div class="vote-grid">${box(0)}${box(1)}</div>
+    <div class="center-actions"><button class="btn btn-primary btn-lg" data-action="tally" ${state.votes[0] + state.votes[1] ? "" : "disabled"}>集計する</button></div>`;
+  }
+
+  function winnerIndex() {
+    if (state.scores[0] !== state.scores[1]) return state.scores[0] > state.scores[1] ? 0 : 1;
+    return state.votes[0] > state.votes[1] ? 0 : 1;
+  }
+
+  function recapCol(i) {
+    const doubts = state.turns[i].doubts;
+    const items = state.decks[i].map((card, k) => {
+      const mark = doubts.includes(k) ? (card.isTrue ? "ダウト（ハズレ）" : "看破") : "";
+      return `<li><span class="tf ${card.isTrue ? "t" : "f"}">${card.isTrue ? "真" : "偽"}</span><span>${esc(card.text)}</span><span class="found">${mark}</span></li>`;
+    }).join("");
+    return `<div class="recap-col"><h3>${esc(nameOf(i))}の性癖</h3><p class="guide">${esc(nameOf(1 - i))}のダウト結果つき</p><ol>${items}</ol></div>`;
+  }
+
+  function viewResult() {
+    const w = winnerIndex();
+    const how = state.voted
+      ? `得点 ${state.scores[0]} 対 ${state.scores[1]} の同点から、異常性癖投票 ${state.votes[0]} 対 ${state.votes[1]} 票で決着`
+      : `得点 ${state.scores[0]} 対 ${state.scores[1]} で決着`;
+    return `${header()}
+    <section class="result-hero">
+      <span class="eyebrow">優勝者</span>
+      <h2 class="winner">${esc(nameOf(w))}</h2>
+      <span class="win-stamp anim">優勝</span>
+      <p class="guide">${esc(how)}。罰ゲームは優勝者が決定し、絶対遵守されます。</p>
+      <div class="final">
+        <button class="btn btn-primary btn-lg" data-action="again">同じメンバーでもう一度</button>
+        <button class="btn btn-lg btn-ghost" data-action="home">タイトルへ</button>
+      </div>
+    </section>
+    <div class="screen-head"><h2>振り返り</h2></div>
+    <div class="recap">${recapCol(0)}${recapCol(1)}</div>`;
+  }
+
+  const VIEWS = { title: viewTitle, rules: viewRules, input: viewInput, draw: viewDraw, battle: viewBattle, vote: viewVote, result: viewResult };
+
+  function render() {
+    app.innerHTML = (VIEWS[state.screen] || viewTitle)();
+    animateCard = null;
+    if (state.screen === "draw" && !state.drawn && !drawTimer) runDraw();
+  }
+
+  // ---------- actions ----------
+  function validate() {
+    const problems = [];
+    state.players.forEach((p, i) => {
+      const values = [...p.truths, ...p.lies].map((v) => v.trim());
+      const empty = values.filter((v) => !v).length;
+      if (empty) problems.push(`プレイヤー${i + 1}の性癖があと${empty}つ未入力です`);
+      const filled = values.filter(Boolean);
+      if (new Set(filled).size !== filled.length) problems.push(`プレイヤー${i + 1}に同じ内容のカードがあります`);
+    });
+    return problems.length ? `${problems.join("。")}。` : "";
+  }
+
+  function buildDeck(p) {
+    return shuffle([
+      ...p.truths.map((t) => ({ text: t.trim(), isTrue: true })),
+      ...p.lies.map((t) => ({ text: t.trim(), isTrue: false })),
+    ]);
+  }
+
+  function runDraw() {
+    const first = Math.random() < 0.5 ? 0 : 1;
+    const finish = () => { drawTimer = null; setState({ drawn: true, order: [first, 1 - first] }); };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { finish(); return; }
+    let lit = 0;
+    let delay = 70;
+    const startedAt = performance.now();
+    const tick = () => {
+      const plates = [document.getElementById("plate0"), document.getElementById("plate1")];
+      if (!plates[0] || !plates[1]) { drawTimer = null; return; }
+      plates.forEach((el, i) => el.classList.toggle("lit", i === lit));
+      if (performance.now() - startedAt > DRAW_MS && lit === first) { drawTimer = setTimeout(finish, 450); return; }
+      lit = 1 - lit;
+      delay = Math.min(delay * 1.12, 320);
+      drawTimer = setTimeout(tick, delay);
+    };
+    drawTimer = setTimeout(tick, delay);
+  }
+
+  function pushHistory() {
+    history = [...history, clone({ turns: state.turns, scores: state.scores })];
+  }
+
+  function withCurrentTurn(next) {
+    const p = presenter();
+    return state.turns.map((t, i) => (i === p ? next : t));
+  }
+
+  function goTop() {
+    try { window.scrollTo({ top: 0 }); } catch (_) { /* ignore */ }
+  }
+
+  const actions = {
+    start: () => setState({ screen: "input", error: "" }),
+    rules: () => setState({ screen: "rules" }),
+    home: () => { clearTimeout(drawTimer); drawTimer = null; history = []; state = initialState(); render(); goTop(); },
+    askHome: () => setState({ confirmHome: true }),
+    cancelHome: () => setState({ confirmHome: false }),
+    toggleHide: () => setState({ hide: !state.hide }),
+    sample: () => setState({ players: clone(SAMPLE), error: "" }),
+    confirm: () => {
+      const err = validate();
+      if (err) { setState({ error: err }); return; }
+      setState({
+        error: "", screen: "draw", drawn: false, turn: 0,
+        decks: [buildDeck(state.players[0]), buildDeck(state.players[1])],
+        turns: [newTurn(), newTurn()], scores: [0, 0], votes: [0, 0], voteRound: 1, voted: false,
+      });
+      goTop();
+    },
+    beginBattle: () => { history = []; setState({ screen: "battle", turn: 0 }); },
+    deep: (i) => {
+      const t = currentTurn();
+      if (t.deep !== null || t.doubts.length > 0) return;
+      pushHistory();
+      setState({ turns: withCurrentTurn({ ...t, deep: i }) });
+    },
+    doubt: (i) => {
+      const t = currentTurn();
+      if (t.done || t.doubts.includes(i)) return;
+      pushHistory();
+      const doubts = [...t.doubts, i];
+      const hit = !state.decks[presenter()][i].isTrue;
+      const scores = state.scores.map((s, k) => (k === challenger() && hit ? s + 1 : s));
+      animateCard = i;
+      setState({ turns: withCurrentTurn({ ...t, doubts, done: doubts.length >= DOUBT_LIMIT }), scores });
+    },
+    undo: () => {
+      if (!history.length) return;
+      const prev = history[history.length - 1];
+      history = history.slice(0, -1);
+      setState({ turns: prev.turns, scores: prev.scores });
+    },
+    nextTurn: () => {
+      history = [];
+      if (state.turn === 0) { setState({ turn: 1, confirmHome: false }); goTop(); return; }
+      const tie = state.scores[0] === state.scores[1];
+      setState({ screen: tie ? "vote" : "result", confirmHome: false });
+      goTop();
+    },
+    vote: (i, d) => setState({ votes: state.votes.map((v, k) => (k === i ? Math.max(0, v + d) : v)), error: "" }),
+    tally: () => {
+      const [a, b] = state.votes;
+      if (a === b) {
+        setState({ votes: [0, 0], voteRound: state.voteRound + 1, error: `${a}対${b}の同数でした。再投票してください。` });
+        return;
+      }
+      setState({ voted: true, screen: "result", error: "" });
+      goTop();
+    },
+    again: () => {
+      const names = state.players.map((p) => p.name);
+      history = [];
+      state = { ...initialState(names), screen: "input" };
+      render();
+      goTop();
+    },
+  };
+
+  app.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action]");
+    if (!btn || btn.disabled) return;
+    const fn = actions[btn.dataset.action];
+    if (!fn) return;
+    const i = btn.dataset.i !== undefined ? Number(btn.dataset.i) : undefined;
+    const d = btn.dataset.d !== undefined ? Number(btn.dataset.d) : undefined;
+    fn(i, d);
+  });
+
+  // Text input updates state without re-rendering, so focus and IME composition stay intact.
+  app.addEventListener("input", (e) => {
+    const el = e.target;
+    if (!el.dataset || el.dataset.p === undefined) return;
+    const i = Number(el.dataset.p);
+    const kind = el.dataset.kind;
+    const players = state.players.map((p, k) => {
+      if (k !== i) return p;
+      if (kind === "name") return { ...p, name: el.value };
+      const list = p[kind].map((v, j) => (j === Number(el.dataset.k) ? el.value : v));
+      return { ...p, [kind]: list };
+    });
+    state = { ...state, players };
+  });
+
+  // ---------- boot ----------
+  function start(data) {
+    if (data && data.state && data.state.screen) {
+      state = { ...initialState(), ...data.state, drawn: data.state.screen === "draw" ? false : data.state.drawn };
+      history = Array.isArray(data.history) ? data.history : [];
+    }
+    render();
+  }
+  try { window.claude?.hot?.snapshot?.(() => ({ state, history })); } catch (_) { /* outside a viewer */ }
+  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
+
+</body>
+</html>
