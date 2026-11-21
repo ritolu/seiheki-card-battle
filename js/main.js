@@ -2,7 +2,7 @@
 // The host keeps the authoritative game (engine.js) and sends each guest only publicView(game, guest).
 import * as E from "./engine.js";
 import { hostRoom, joinRoom, newRoomCode, isRoomCode, peerAvailable } from "./net.js";
-import { viewTitle, viewRules, viewJoin, viewConnecting } from "./screens.js";
+import { viewTitle, viewRules, viewJoin, viewConnecting, viewCredits } from "./screens.js";
 import { viewGame } from "./views.js";
 
 const DRAW_MS = 1800;
@@ -73,6 +73,7 @@ function stampAnimations() {
 
 function screenHtml() {
   if (ui.screen === "rules") return viewRules(ui);
+  if (ui.screen === "credits") return viewCredits(ui);
   if (ui.screen === "join") return viewJoin(ui);
   if (ui.screen === "connecting") return viewConnecting(ui);
   if (ui.screen === "game" && vm) return viewGame(ui, vm, stampAnimations());
@@ -363,6 +364,7 @@ const ACTIONS = {
   retryJoin: () => { const s = store.get(KEY_CLIENT); if (s) { reconnectTries = 0; startJoining(s.code, s.name, s.role); } },
   localGame: () => { game = E.createGame("local"); ui = { ...ui, mode: "local", screen: "game", error: "", info: "", drafts: [blankDraft(), blankDraft()] }; publish(); },
   rules: () => setUi({ screen: "rules" }),
+  credits: () => { setUi({ screen: "credits" }); scrollTop(); },
   backTitle: () => setUi({ screen: "title", error: "", info: "" }),
   askLeave: () => setUi({ confirmLeave: true }),
   cancelLeave: () => setUi({ confirmLeave: false }),

@@ -1,6 +1,11 @@
 // Screens shown before a game view exists: title, rules, join form, connecting.
 import { esc, header, messages } from "./ui-kit.js";
 
+export const APP_VERSION = "2.0";
+const CREATOR = { name: "ritolu", url: "https://github.com/ritolu" };
+const COMMITTEE = "性癖カードバトル運営委員会";
+const REPO_URL = "https://github.com/ritolu/seiheki-card-battle";
+
 export function viewTitle(ui) {
   const resume = [
     ui.resume.host ? `<button class="btn" data-action="resumeHost">部屋 ${esc(ui.resume.host)} を再開（司会者）</button>` : "",
@@ -21,9 +26,37 @@ export function viewTitle(ui) {
       <div class="title-minor">
         <button class="btn btn-ghost" data-action="localGame">1台で遊ぶ（画面共有用）</button>
         <button class="btn btn-ghost" data-action="rules">ルールを読む</button>
+        <button class="btn btn-ghost" data-action="credits">クレジット</button>
       </div>
       <span class="rev">ルールブック 令和8年5月12日改定版に準拠</span>
     </div>
+  </section>
+  <footer class="title-foot">© 2026 ${COMMITTEE}　製作 ${CREATOR.name}　v${APP_VERSION}</footer>`;
+}
+
+const creditRow = (role, names) => `<div class="credit-row"><dt>${role}</dt><dd>${names}</dd></div>`;
+const extLink = (url, text) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+
+export function viewCredits(ui) {
+  return `${header(ui, `<button class="btn" data-action="backTitle">タイトルへ戻る</button>`)}
+  <section class="credits">
+    <span class="seal big" aria-hidden="true">運営委員会之印</span>
+    <h2 class="credits-title">性癖カードバトル</h2>
+    <p class="credits-sub">公式進行補助システム　v${APP_VERSION}</p>
+    <dl class="credit-list">
+      ${creditRow("企画・ルール制定", COMMITTEE)}
+      ${creditRow("製作", extLink(CREATOR.url, CREATOR.name))}
+      ${creditRow("通信", `${extLink("https://peerjs.com/", "PeerJS")}<small>MIT License</small>`)}
+      ${creditRow("書体", `Shippori Mincho B1 ／ Zen Kaku Gothic New ／ Yuji Syuku<small>SIL Open Font License 1.1（Google Fonts）</small>`)}
+    </dl>
+    <div class="credit-license">
+      <h3>ライセンス</h3>
+      <p>プログラム：MIT License　© 2026 ${CREATOR.name}</p>
+      <p>ゲームの名称・ルールブック・委員会名：© 2026 ${COMMITTEE}　All rights reserved.</p>
+      <p>${extLink(REPO_URL, "ソースコードと変更履歴（GitHub）")}</p>
+    </div>
+    <p class="credit-disclaimer">本委員会は当作品におけるトラブルに一切の責任を負いかねます。</p>
+    <span class="credit-seal" aria-hidden="true">${esc(COMMITTEE)}</span>
   </section>`;
 }
 
