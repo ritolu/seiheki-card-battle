@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGame, reduce, publicView, validateCards, resetConnections, HOST, MAX_SPECTATORS } from "../js/engine.js";
+import { createGame, reduce, publicView, validateCards, resetConnections, slotOf as slotIndexOf, HOST, MAX_SPECTATORS } from "../js/engine.js";
 
 const CARDS_A = { truths: ["メガネ", "低い声", "手の血管"], lies: ["図書館", "敬語"] };
 const CARDS_B = { truths: ["袖まくり", "かすれ声", "万年筆"], lies: ["左利き", "うなじ"] };
@@ -47,6 +47,45 @@ test("third debater becomes a spectator and reconnect keeps the slot", () => {
   s = apply(s, { type: "join", clientId: "a", name: "", wantRole: "spectator" });
   assert.equal(s.players[0].connected, true);
   assert.equal(s.players[0].clientId, "a");
+});
+
+test("a new debater takes over a slot abandoned before submitting", () => {
+  let s = createGame("online");
+  s = apply(s, { type: "join", clientId: "a", name: "A", wantRole: "debater" });
+  s = apply(s, { type: "join", clientId: "ghost", name: "テスト用タブ", wantRole: "debater" });
+  s = apply(s, { type: "leave", clientId: "ghost" });
+  s = apply(s, { type: "join", clientId: "friend", name: "友達", wantRole: "debater" });
+  assert.equal(s.players[1].clientId, "friend");
+  assert.equal(s.players[1].name, "友達");
+  assert.equal(s.players[1].connected, true);
+  assert.equal(s.spectators.friend, undefined);
+});
+
+test("a spectator who rejoins as debater moves into an open slot", () => {
+  let s = createGame("online");
+  s = apply(s, { type: "join", clientId: "f", name: "友達", wantRole: "spectator" });
+  s = apply(s, { type: "join", clientId: "f", name: "友達", wantRole: "debater" });
+  assert.equal(s.players[0].clientId, "f");
+  assert.equal(Object.keys(s.spectators).length, 0);
+  assert.equal(publicView(s, "f").role, "debater");
+});
+
+test("a spectator rejoining as debater stays a spectator when slots are taken", () => {
+  let s = lobbyWithPlayers();
+  s = apply(s, { type: "join", clientId: "v1", name: "観戦1", wantRole: "debater" });
+  assert.ok(s.spectators.v1);
+  assert.equal(slotIndexOf(s, "v1"), -1);
+});
+
+test("a slot whose holder already submitted is not taken over", () => {
+  let s = createGame("online");
+  s = apply(s, { type: "join", clientId: "a", name: "A", wantRole: "debater" });
+  s = apply(s, { type: "join", clientId: "b", name: "B", wantRole: "debater" });
+  s = apply(s, { type: "submitCards", by: "b", ...CARDS_B });
+  s = apply(s, { type: "leave", clientId: "b" });
+  const res = reduce(s, { type: "join", clientId: "c", name: "C", wantRole: "debater" });
+  assert.match(res.info, /観戦者として参加/);
+  assert.equal(res.state.players[1].clientId, "b");
 });
 
 test("lobby view shows a debater only their own cards", () => {

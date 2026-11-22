@@ -96,21 +96,34 @@ const withSlot = (s, i, patch) => s.players.map((p, k) => (k === i ? { ...p, ...
 const withCurrentTurn = (s, next) => s.turns.map((t, i) => (i === presenter(s) ? next : t));
 
 // ---------- participants ----------
+// An empty slot first; otherwise one whose holder left before submitting cards.
+function openDebaterSlot(s) {
+  if (s.phase !== "lobby") return -1;
+  const free = s.players.findIndex((p) => !p.clientId && !p.submitted);
+  if (free >= 0) return free;
+  return s.players.findIndex((p) => p.clientId && !p.connected && !p.submitted);
+}
+
 function join(s, { clientId, name, wantRole }) {
   const cleanName = cleanText(name, MAX_NAME);
   if (!isGuestId(clientId)) return fail(s, "参加情報が正しくありません。");
   const mine = slotOf(s, clientId);
   if (mine >= 0) return ok({ ...s, players: withSlot(s, mine, { connected: true }) });
+  const slot = wantRole === "debater" ? openDebaterSlot(s) : -1;
   if (has(s.spectators, clientId)) {
-    return ok({ ...s, spectators: { ...s.spectators, [clientId]: { ...s.spectators[clientId], connected: true } } });
+    const me = s.spectators[clientId];
+    if (slot < 0) return ok({ ...s, spectators: { ...s.spectators, [clientId]: { ...me, connected: true } } });
+    // A spectator who rejoins asking to debate moves into the open slot.
+    const spectators = { ...s.spectators };
+    delete spectators[clientId];
+    return ok({ ...s, spectators, players: withSlot(s, slot, { ...newSlot(), clientId, name: cleanName || me.name, connected: true }) });
   }
   if (!cleanName) return fail(s, "名前を入力してください。");
-  if (wantRole === "debater" && s.phase === "lobby") {
-    const free = s.players.findIndex((p) => !p.clientId && !p.submitted);
-    if (free >= 0) return ok({ ...s, players: withSlot(s, free, { clientId, name: cleanName, connected: true }) });
-  }
+  if (slot >= 0) return ok({ ...s, players: withSlot(s, slot, { ...newSlot(), clientId, name: cleanName, connected: true }) });
   if (Object.keys(s.spectators).length >= MAX_SPECTATORS) return fail(s, "観戦者が満員のため参加できません。");
-  const info = wantRole === "debater" ? "討論者の枠が埋まっているため、観戦者として参加しました。" : "";
+  const info = wantRole === "debater"
+    ? "討論者の枠が埋まっているため、観戦者として参加しました。討論者になるには、司会者に「枠を空ける」を押してもらってから入り直してください。"
+    : "";
   return ok({ ...s, spectators: { ...s.spectators, [clientId]: { name: cleanName, connected: true } } }, info);
 }
 

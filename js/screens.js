@@ -1,7 +1,7 @@
 // Screens shown before a game view exists: title, rules, join form, connecting.
 import { esc, header, messages } from "./ui-kit.js";
 
-export const APP_VERSION = "2.0";
+export const APP_VERSION = "2.1";
 const CREATOR = { name: "ritolu", url: "https://github.com/ritolu" };
 const COMMITTEE = "性癖カードバトル運営委員会";
 const REPO_URL = "https://github.com/ritolu/seiheki-card-battle";
@@ -118,11 +118,29 @@ export function viewJoin(ui) {
   </form>`;
 }
 
+const JOIN_STEPS = [
+  ["signal", "通信サーバーに接続"],
+  ["dialing", "司会者の端末までの経路を作成"],
+  ["hello", "参加を申し込み、返事を待つ"],
+];
+
+function joinSteps(stage) {
+  const current = JOIN_STEPS.findIndex(([key]) => key === stage);
+  const items = JOIN_STEPS.map(([, label], i) => {
+    const state = i < current ? "done" : i === current ? "now" : "todo";
+    const mark = state === "done" ? "✓" : state === "now" ? "…" : "・";
+    return `<li class="step ${state}"><span aria-hidden="true">${mark}</span>${label}</li>`;
+  }).join("");
+  return `<ol class="join-steps" aria-label="接続の進み具合">${items}</ol>`;
+}
+
 export function viewConnecting(ui) {
   const text = ui.mode === "host" ? "部屋を準備しています…" : `部屋 ${esc(ui.roomCode)} に接続しています…`;
+  const steps = ui.mode === "client" ? joinSteps(ui.joinStage) : "";
   return `${header(ui, `<button class="btn" data-action="leave">やめる</button>`)}
   <section class="draw">
-    <div class="screen-head"><h2>${text}</h2><p>数秒かかることがあります。</p></div>
+    <div class="screen-head"><h2>${text}</h2><p>数秒かかることがあります。20秒たってもつながらない場合は、止まった段階をお知らせします。</p></div>
+    ${steps}
     ${messages(ui)}
   </section>`;
 }

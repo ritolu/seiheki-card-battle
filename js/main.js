@@ -9,6 +9,13 @@ const DRAW_MS = 1800;
 const RETRY_MS = 3000;
 const MAX_RECONNECT = 20;
 const MAX_HOST_RETRY = 10;
+const JOIN_TIMEOUT_MS = 20000;
+const HELLO_RETRY_MS = 3000;
+const JOIN_TIMEOUT_MESSAGES = {
+  signal: "通信サーバーにつながりませんでした。ネットワークを確認して、もう一度「参加する」を押してください。",
+  dialing: "司会者の端末までの経路を作れませんでした。回線の組み合わせが原因の可能性があります。もう一度試すか、別の回線（モバイル回線など）でお試しください。",
+  hello: "司会者の端末にはつながりましたが、応答がありませんでした。司会者に部屋が開いたままか確認してもらい、もう一度お試しください。",
+};
 const KEY_HOST = "seiheki-host";
 const KEY_CLIENT = "seiheki-client";
 const KEY_ID = "seiheki-client-id";
@@ -56,6 +63,8 @@ let seenDoubts = null;
 let drawSpin = null;
 let drawTimer = null;
 let reconnectTimer = null;
+let joinTimer = null;
+let helloTimer = null;
 let reconnectTries = 0;
 let hostRetries = 0;
 let composing = false;
@@ -241,6 +250,7 @@ function startHosting(code, resuming) {
 function onHostMessage(msg) {
   if (!msg || typeof msg !== "object") return;
   if (msg.t === "state" && msg.view && typeof msg.view === "object") {
+    clearJoinTimers();
     const prev = vm;
     vm = msg.view;
     let patch = { screen: "game", conn: "open" };
@@ -272,7 +282,23 @@ function scheduleReconnect() {
   }, RETRY_MS);
 }
 
+function clearJoinTimers() {
+  clearTimeout(joinTimer);
+  clearInterval(helloTimer);
+  joinTimer = null;
+  helloTimer = null;
+}
+
+function onJoinTimeout() {
+  clearJoinTimers();
+  if (ui.mode !== "client" || vm) return;
+  if (net) net.destroy();
+  net = null;
+  setUi({ screen: "join", mode: null, conn: "idle", error: JOIN_TIMEOUT_MESSAGES[ui.joinStage] || JOIN_TIMEOUT_MESSAGES.signal });
+}
+
 function onGuestError(err) {
+  clearJoinTimers();
   if (vm) { setUi({ conn: "lost" }); scheduleReconnect(); return; }
   if (net) net.destroy();
   net = null;
@@ -287,12 +313,20 @@ function startJoining(code, name, role) {
   if (net) net.destroy();
   store.set(KEY_CLIENT, { code, name, role });
   const rejoining = Boolean(vm);
-  ui = { ...ui, mode: "client", roomCode: code, conn: rejoining ? "lost" : "connecting", screen: rejoining ? "game" : "connecting", error: "", join: { ...ui.join, code, name, role } };
+  clearJoinTimers();
+  ui = { ...ui, mode: "client", roomCode: code, conn: rejoining ? "lost" : "connecting", screen: rejoining ? "game" : "connecting", joinStage: "signal", error: "", join: { ...ui.join, code, name, role } };
   render();
+  if (!rejoining) joinTimer = setTimeout(onJoinTimeout, JOIN_TIMEOUT_MS);
+  const hello = { t: "hello", clientId, name, role };
   net = joinRoom(code, {
+    onSignal: () => { if (!vm) setUi({ joinStage: "dialing" }); },
     onOpen: () => {
       reconnectTries = 0;
-      net.send({ t: "hello", clientId, name, role });
+      net.send(hello);
+      // Joining is idempotent on the host, so resend until the first state arrives.
+      clearInterval(helloTimer);
+      helloTimer = setInterval(() => { if (net) net.send(hello); }, HELLO_RETRY_MS);
+      if (!vm) setUi({ joinStage: "hello" });
     },
     onMessage: onHostMessage,
     onClose: () => { if (ui.mode !== "client") return; setUi({ conn: "lost" }); scheduleReconnect(); },
@@ -305,6 +339,7 @@ const sendAction = (action) => { if (net && ui.mode === "client") net.send({ t: 
 // ---------- shared actions ----------
 function leaveAll() {
   clearTimeout(reconnectTimer);
+  clearJoinTimers();
   clearTimeout(drawTimer);
   drawTimer = null;
   if (net) net.destroy();
