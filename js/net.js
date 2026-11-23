@@ -4,7 +4,13 @@
 // WebRTC rarely reports a peer that vanished (closed tab, phone put to sleep), so both
 // sides exchange heartbeats and treat a silent connection as closed.
 
+import { ICE_SERVERS, RELAY_ONLY } from "./config.js";
+
 const PREFIX = "seiheki-cb-v1-";
+const PEER_OPTIONS = {
+  debug: 0,
+  config: { iceServers: ICE_SERVERS, ...(RELAY_ONLY ? { iceTransportPolicy: "relay" } : {}) },
+};
 const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 4;
 const PING_MS = 4000;
@@ -30,7 +36,7 @@ const isHeartbeat = (data, kind) => Boolean(data) && typeof data === "object" &&
  *           onClose: (peerId: string) => void, onError: (err: { type?: string }) => void }} h
  */
 export function hostRoom(code, h) {
-  const peer = new window.Peer(PREFIX + code, { debug: 0 });
+  const peer = new window.Peer(PREFIX + code, PEER_OPTIONS);
   const conns = new Map(); // peerId -> { conn, lastSeen }
 
   const drop = (peerId, conn) => {
@@ -77,7 +83,7 @@ export function hostRoom(code, h) {
  *           onClose: () => void, onError: (err: { type?: string }) => void }} h
  */
 export function joinRoom(code, h) {
-  const peer = new window.Peer({ debug: 0 });
+  const peer = new window.Peer(PEER_OPTIONS);
   let conn = null;
   let closed = false;
   let lastHeard = 0;

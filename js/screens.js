@@ -1,7 +1,7 @@
 // Screens shown before a game view exists: title, rules, join form, connecting.
 import { esc, header, messages } from "./ui-kit.js";
 
-export const APP_VERSION = "2.1";
+export const APP_VERSION = "2.2";
 const CREATOR = { name: "ritolu", url: "https://github.com/ritolu" };
 const COMMITTEE = "性癖カードバトル運営委員会";
 const REPO_URL = "https://github.com/ritolu/seiheki-card-battle";
@@ -47,6 +47,7 @@ export function viewCredits(ui) {
       ${creditRow("企画・ルール制定", COMMITTEE)}
       ${creditRow("製作", extLink(CREATOR.url, CREATOR.name))}
       ${creditRow("通信", `${extLink("https://peerjs.com/", "PeerJS")}<small>MIT License</small>`)}
+      ${creditRow("中継サーバー", `${extLink("https://www.metered.ca/", "Metered")}<small>TURN Server</small>`)}
       ${creditRow("書体", `Shippori Mincho B1 ／ Zen Kaku Gothic New ／ Yuji Syuku<small>SIL Open Font License 1.1（Google Fonts）</small>`)}
     </dl>
     <div class="credit-license">
